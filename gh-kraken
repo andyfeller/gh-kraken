@@ -12,7 +12,7 @@ USAGE
 FLAGS
   -d, --debug                          Enable debug logging
   -h, --help                           Displays help usage
-  -H, --hostname=string                Hostname of the GitHub instance to authenticate with
+  -H, --hostname <host>                Hostname of the GitHub instance to authenticate with
 ";
 
 die() {
@@ -75,13 +75,8 @@ else
     REPO="$1"
 fi
 
-echo "Using $OWNER/$REPO as source repo"
-
-DEFAULT_BRANCH=$(gh repo view "$OWNER/$REPO" --json defaultBranchRef --jq '.defaultBranchRef.name')
-echo "Using $DEFAULT_BRANCH as default branch"
-
+DEFAULT_BRANCH=$(gh api "/repos/$OWNER/$REPO" --jq '.default_branch')
 LATEST_RELEASE_TAG=$(gh api "/repos/$OWNER/$REPO/releases/latest" --jq '.tag_name')
-echo "Using $LATEST_RELEASE_TAG as latest release tag"
 
 export TEMPLATE="
 $OWNER/$REPO $DEFAULT_BRANCH branch is {{ .status }} of $LATEST_RELEASE_TAG by {{ .total_commits }} commits
