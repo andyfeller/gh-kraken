@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+MESSAGE_WIDTH=80
+RELEASE_TAG=
+SHA_WIDTH=8
+
 __USAGE="
 Identify unreleased changes compared to latest release.
 
@@ -12,7 +16,10 @@ USAGE
 FLAGS
   -d, --debug                          Enable debug logging
   -h, --help                           Displays help usage
-  -H, --hostname <host>                Hostname of the GitHub instance to authenticate with
+  -H, --hostname=<host>                Hostname of the GitHub instance to authenticate with
+  -m, --message-width=<int>            Width of commit message; default '$MESSAGE_WIDTH'
+  -r, --release-tag=<string>           Release tags to calculate from; default latest
+  -s, --sha-width=<int>                Width of commit SHA; default '$SHA_WIDTH'
 ";
 
 die() {
@@ -25,7 +32,7 @@ if ! type -p gh > /dev/null; then
 	die "'gh' could not be found"
 fi
 
-while getopts "dhH:-:" OPT; do
+while getopts "dhH:m:r:s:-:" OPT; do
 	if [ "$OPT" = "-" ]; then     # long option: reformulate OPT and OPTARG
 		OPT="${OPTARG%%=*}"       # extract long option name
 		OPTARG="${OPTARG#"$OPT"}" # extract long option argument (may be empty)
@@ -46,6 +53,18 @@ while getopts "dhH:-:" OPT; do
 
         hostname | H)
             export GH_HOST="${OPTARG}"
+            ;;
+
+        message-width | m)
+            export MESSAGE_WIDTH="${OPTARG}"
+            ;;
+
+        release-tag | r)
+            export RELEASE_TAG="${OPTARG}"
+            ;;
+
+        sha-width | s)
+            export SHA_WIDTH="${OPTARG}"
             ;;
 
 		*)
@@ -76,18 +95,33 @@ else
 fi
 
 DEFAULT_BRANCH=$(gh api "/repos/$OWNER/$REPO" --jq '.default_branch')
-LATEST_RELEASE_TAG=$(gh api "/repos/$OWNER/$REPO/releases/latest" --jq '.tag_name')
 
+if [ -z "$RELEASE_TAG" ]; then
+	RELEASE_TAG=$(gh api "/repos/$OWNER/$REPO/releases/latest" --jq '.tag_name')
+fi
+
+#
+# When thinking about formatting and available real estate
+#
+#          1         2         3         4         5         6         7         8
+# 12345678901234567890123456789012345678901234567890123456789012345678901234567890
+#
+# ab7e55e2  2023-12-12T23:36:40Z  samueldurantes  Add more help message to browse command
+# ab7e55e20a4594bfbec6a3bdd204926ee95d145c
+#
+# By shortening the SHA artifically from 40 characters to 8, we can extend the commit message a little.
+# Unfortunately, usernames can max at 39 characters, so this isn't perfectly vt100 80 character limited.
+#
 export TEMPLATE="
-$OWNER/$REPO $DEFAULT_BRANCH branch is {{ .status }} of $LATEST_RELEASE_TAG by {{ .total_commits }} commits
+$OWNER/$REPO $DEFAULT_BRANCH branch is {{ .status }} of $RELEASE_TAG by {{ .total_commits }} commits
 
 COMPARE: {{ .html_url }}
 
 {{  tablerow \"SHA\" \"DATE\" \"AUTHOR\" \"MESSAGE\"  }}
 {{- range .commits }}
-{{- tablerow .sha .commit.author.date .author.login (printf \"%.40s\" .commit.message) }}
+{{- tablerow (printf \"%.*s\" $SHA_WIDTH .sha) .commit.author.date .author.login (printf \"%.*s\" $MESSAGE_WIDTH .commit.message) }}
 {{- end }}
 {{- tablerender }}
 "
 
-gh api "/repos/$OWNER/$REPO/compare/$LATEST_RELEASE_TAG...$DEFAULT_BRANCH" --template "$TEMPLATE"
+gh api "/repos/$OWNER/$REPO/compare/$RELEASE_TAG...$DEFAULT_BRANCH" --template "$TEMPLATE"

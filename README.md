@@ -10,14 +10,14 @@ cli/cli trunk branch is ahead of v2.36.0 by 7 commits
 
 COMPARE: https://github.com/cli/cli/compare/v2.36.0...trunk
 
-SHA                                       DATE                  AUTHOR         MESSAGE
-49ec4842116f67fc672c01d393953cf0af22f279  2023-10-03T14:45:44Z  williammartin  Add homebrew-bump-debug workflow (#8114)
-aefecbab6515b1b864e381b6a0210cf4f90a0d0a  2023-10-03T14:54:44Z  andyfeller     Update homebrew-bump.yml...
-80e46cabebb378ae9bd70cf341517ba09b195bb1  2023-10-03T15:28:58Z  andyfeller     Update deployment.yml...
-3443a752a9949ee4f954a84f7ab94a4b99df1b27  2023-10-03T17:20:02Z  darthwalsh     docs: fix typo in pr create (#8115)...
-7a68d19c40eae8e0cb590ea91309948c9beabb97  2023-10-10T12:29:40Z  andyfeller     Merge pull request #8116 from cli/andyfe
-885ccd7424acb8db9519dc972bbac2b67c5a9d3f  2023-10-11T08:35:40Z  utouto97       Disable issue with template (#7918)...
-363dacbbed8cc9f86026ec1b1e38c6dca0d78c08  2023-10-11T13:41:00Z  kbailey4444    Set default repository for `repo clone`
+SHA       DATE                  AUTHOR            MESSAGE
+49ec4842  2023-10-03T14:45:44Z  williammartin     Add homebrew-bump-debug workflow (#8114)
+aefecbab  2023-10-03T14:54:44Z  andyfeller        Update homebrew-bump.yml...
+80e46cab  2023-10-03T15:28:58Z  andyfeller        Update deployment.yml...
+3443a752  2023-10-03T17:20:02Z  darthwalsh        docs: fix typo in pr create (#8115)...
+7a68d19c  2023-10-10T12:29:40Z  andyfeller        Merge pull request #8116 from cli/andyfeller/7718-homebrew-bump...
+885ccd74  2023-10-11T08:35:40Z  utouto97          Disable issue with template (#7918)...
+363dacbb  2023-10-11T13:41:00Z  kbailey4444       Set default repository for `repo clone` and `repo fork` (#7768)
 ```
 
 ## Quickstart
@@ -39,7 +39,10 @@ USAGE
 FLAGS
   -d, --debug                          Enable debug logging
   -h, --help                           Displays help usage
-  -H, --hostname <host>                Hostname of the GitHub instance to authenticate with
+  -H, --hostname=<host>                Hostname of the GitHub instance to authenticate with
+  -m, --message-width=<int>            Width of commit message; default '80'
+  -r, --release-tag=<string>           Release tags to calculate from; default latest
+  -s, --sha-width=<int>                Width of commit SHA; default '8'
 ```
 
 ## Setup
