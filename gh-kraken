@@ -43,7 +43,7 @@ while getopts "dhH:m:r:s:-:" OPT; do
 
 		debug | d)
 			set -x
-			DEBUG=true
+			GH_DEBUG=api
 			;;
 
 		help | h)
