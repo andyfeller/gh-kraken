@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
+BASE_BRANCH=
 MESSAGE_WIDTH=80
 RELEASE_TAG=
 SHA_WIDTH=8
@@ -14,6 +15,7 @@ USAGE
   gh kraken [flags] <owner>/<repo>
 
 FLAGS
+  -b, --base-branch=<branch>           Name of branch for new release; default base branch
   -d, --debug                          Enable debug logging
   -h, --help                           Displays help usage
   -H, --hostname=<host>                Hostname of the GitHub instance to authenticate with
@@ -32,7 +34,7 @@ if ! type -p gh > /dev/null; then
 	die "'gh' could not be found"
 fi
 
-while getopts "dhH:m:r:s:-:" OPT; do
+while getopts "b:dhH:m:r:s:-:" OPT; do
 	if [ "$OPT" = "-" ]; then     # long option: reformulate OPT and OPTARG
 		OPT="${OPTARG%%=*}"       # extract long option name
 		OPTARG="${OPTARG#"$OPT"}" # extract long option argument (may be empty)
@@ -40,6 +42,10 @@ while getopts "dhH:m:r:s:-:" OPT; do
 	fi
 
 	case "$OPT" in
+        base-branch | b)
+            BASE_BRANCH="${OPTARG}"
+            ;;
+
 
 		debug | d)
 			set -x
@@ -94,7 +100,9 @@ else
     REPO="$1"
 fi
 
-DEFAULT_BRANCH=$(gh api "/repos/$OWNER/$REPO" --jq '.default_branch')
+if [ -z "$BASE_BRANCH" ]; then
+	BASE_BRANCH=$(gh api "/repos/$OWNER/$REPO" --jq '.default_branch')
+fi
 
 if [ -z "$RELEASE_TAG" ]; then
 	RELEASE_TAG=$(gh api "/repos/$OWNER/$REPO/releases/latest" --jq '.tag_name')
@@ -113,7 +121,7 @@ fi
 # Unfortunately, usernames can max at 39 characters, so this isn't perfectly vt100 80 character limited.
 #
 export TEMPLATE="
-$OWNER/$REPO $DEFAULT_BRANCH branch is {{ .status }} of $RELEASE_TAG by {{ .total_commits }} commits
+$OWNER/$REPO $BASE_BRANCH branch is {{ .status }} of $RELEASE_TAG by {{ .total_commits }} commits
 
 COMPARE: {{ .html_url }}
 
@@ -124,4 +132,4 @@ COMPARE: {{ .html_url }}
 {{- tablerender }}
 "
 
-gh api "/repos/$OWNER/$REPO/compare/$RELEASE_TAG...$DEFAULT_BRANCH" --template "$TEMPLATE"
+gh api "/repos/$OWNER/$REPO/compare/$RELEASE_TAG...$BASE_BRANCH" --template "$TEMPLATE"
