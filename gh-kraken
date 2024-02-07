@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
+GH_DEBUG=
 BASE_BRANCH=
 MESSAGE_WIDTH=80
 RELEASE_TAG=
@@ -93,8 +94,8 @@ if [[ "$#" -eq 0 ]]; then
 elif [[ "$#" -gt 1 ]]; then
     die "Too many arguments"
 elif [[ "$1" == *"/"* ]]; then
-	OWNER=$(echo $1 | cut -d '/' -f 1)
-	REPO=$(echo $1 | cut -d '/' -f 2)
+	OWNER="$(echo $1 | cut -d '/' -f 1)"
+	REPO="$(echo $1 | cut -d '/' -f 2)"
 else
     OWNER=$(gh api /user --jq '.login')
     REPO="$1"
@@ -132,4 +133,4 @@ COMPARE: {{ .html_url }}
 {{- tablerender }}
 "
 
-gh api "/repos/$OWNER/$REPO/compare/$RELEASE_TAG...$BASE_BRANCH" --template "$TEMPLATE"
+GH_DEBUG="$GH_DEBUG" gh api "/repos/$OWNER/$REPO/compare/$RELEASE_TAG...$BASE_BRANCH" --template "$TEMPLATE"
