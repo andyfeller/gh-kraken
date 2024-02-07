@@ -37,6 +37,7 @@ USAGE
   gh kraken [flags] <owner>/<repo>
 
 FLAGS
+  -b, --base-branch=<branch>           Name of branch for new release; default base branch
   -d, --debug                          Enable debug logging
   -h, --help                           Displays help usage
   -H, --hostname=<host>                Hostname of the GitHub instance to authenticate with
